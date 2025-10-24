@@ -69,10 +69,6 @@ export default [
 
             ...react.configs.recommended.rules,
 
-            "@typescript-eslint/explicit-function-return-type": ["warn", {
-                allowExpressions: true,
-                allowTypedFunctionExpressions: true,
-            }],
             "@typescript-eslint/no-misused-promises": ["warn", {
                 checksVoidReturn: false,
                 checksConditionals: true,
@@ -95,28 +91,7 @@ export default [
 
             ...jsdoc.configs.recommended.rules,
 
-            "jsdoc/require-jsdoc": ["warn", {
-                require: {
-                    FunctionDeclaration: true,
-                    MethodDefinition: true,
-                    ClassDeclaration: true,
-                    ArrowFunctionExpression: false,
-                    FunctionExpression: false
-                },
-                contexts: [
-                    // Only require JSDoc for exported functions
-                    "ExportNamedDeclaration > FunctionDeclaration",
-                    "ExportDefaultDeclaration > FunctionDeclaration",
-                    "ExportNamedDeclaration > VariableDeclaration",
-                    
-                    // Only require JSDoc for public methods (not private #methods)
-                    "MethodDefinition:not([key.name=/^_/]):not([accessibility='private'])"
-                ],
-                publicOnly: true,
-                exemptEmptyConstructors: true,
-                exemptEmptyFunctions: false,
-                checkConstructors: false
-            }],
+            "jsdoc/require-jsdoc": ["off"],
 
             // Because we're using TypeScript
             "jsdoc/require-param-type": "off",

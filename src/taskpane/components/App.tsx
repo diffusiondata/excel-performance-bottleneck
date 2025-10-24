@@ -10,8 +10,11 @@ import {
   Text,
 } from "@fluentui/react-components";
 import Progress from "./Progress";
+import prettyMilliseconds from 'pretty-ms';
 
-/* global console, Excel, performance  */
+const logWithTime = (...args: unknown[]) => {
+  console.log(new Date().toISOString(), ...args);
+};
 
 export interface AppProps {
   title: string;
@@ -165,6 +168,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
     const startTime = performance.now();
 
+    logWithTime(`Test begun`, {iterations, percentage});
     try {
       await Excel.run(async (context) => {
         const table = context.workbook.tables.getItem(TABLE_NAME);
@@ -193,32 +197,25 @@ export default class App extends React.Component<AppProps, AppState> {
 
             // Update only non-key columns (columns 1 to 16)
             const updateRange = rowRange.getOffsetRange(0, 1).getAbsoluteResizedRange(1, NUM_COLUMNS - 1);
-            // updateRange.load("address");
-            // await context.sync();
-
-            // console.debug(`Applying data to range ${updateRange.address}`, { data: randomData[i] });
             updateRange.values = [randomData[i]];
           }
-
-          // Sync every iteration to ensure updates are applied (intentional for performance testing)
-          // eslint-disable-next-line office-addins/no-context-sync-in-loop
-          await context.sync();
         }
+        await context.sync();
       });
 
       const endTime = performance.now();
-      const executionTime = endTime - startTime;
+      const duration = endTime - startTime;
+      const message = `Test completed. ${iterations.toLocaleString()} iterations on ${percentage}% of rows in ${duration.toLocaleString()}ms or ${prettyMilliseconds(duration)}`;
 
-      const message = `Test completed. ${iterations} iterations on ${percentage}% of rows`;
-      console.log(message);
+      logWithTime(message, {iterations, percentage});
       this.setState({
         isRunningTest: false,
         message,
         messageType: "success",
-        executionTime,
+        executionTime: duration,
       });
     } catch (error) {
-      console.error(error);
+      logWithTime(error);
       const message = `Error executing test: ${error instanceof Error ? error.message : String(error)}`;
       console.error(message);
       this.setState({
@@ -305,8 +302,7 @@ export default class App extends React.Component<AppProps, AppState> {
           {executionTime !== null && (
             <MessageBar intent="info">
               <MessageBarBody>
-                <strong>Execution Time:</strong> {executionTime.toFixed(2)} ms ({(executionTime / 1000).toFixed(2)}{" "}
-                seconds)
+                <strong>Execution Time:</strong> {prettyMilliseconds(executionTime)} ({executionTime.toLocaleString()}ms)
               </MessageBarBody>
             </MessageBar>
           )}
