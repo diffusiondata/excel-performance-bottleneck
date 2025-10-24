@@ -9,7 +9,7 @@ let isOfficeInitialized = false;
 
 const title = "Performance regression reproducer.";
 
-const render = (Component: typeof App) => {
+const render = (Component: typeof App): void => {
   createRoot(document.getElementById("container") as HTMLElement).render(
     <React.StrictMode>
       <FluentProvider theme={webLightTheme}>
@@ -20,7 +20,7 @@ const render = (Component: typeof App) => {
 };
 
 /* Render application after Office initializes */
-Office.onReady(() => {
+void Office.onReady(() => {
   isOfficeInitialized = true;
   render(App);
 });

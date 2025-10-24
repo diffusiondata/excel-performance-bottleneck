@@ -5,15 +5,15 @@
 
 /* global global, Office, self, window */
 
-Office.onReady(() => {
+void Office.onReady(() => {
   // If needed, Office.js is ready to be called
 });
 
 /**
  * Shows a notification when the add-in command is executed.
- * @param event
+ * @param event - The event object from the add-in command
  */
-function action(event: Office.AddinCommands.Event) {
+function action(event: Office.AddinCommands.Event): void {
   const message: Office.NotificationMessageDetails = {
     type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
     message: "Performed action.",
@@ -28,7 +28,7 @@ function action(event: Office.AddinCommands.Event) {
   event.completed();
 }
 
-function getGlobal() {
+function getGlobal(): typeof globalThis | undefined {
   return typeof self !== "undefined"
     ? self
     : typeof window !== "undefined"
@@ -38,7 +38,7 @@ function getGlobal() {
     : undefined;
 }
 
-const g = getGlobal() as any;
+const g = getGlobal() as typeof globalThis & { action?: typeof action };
 
 // The add-in command functions need to be available in global scope
 g.action = action;
