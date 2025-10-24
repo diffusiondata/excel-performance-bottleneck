@@ -11,10 +11,10 @@ import {
 } from "@fluentui/react-components";
 import Progress from "./Progress";
 import prettyMilliseconds from 'pretty-ms';
+import {logWithTime} from "./Common";
+import {ProgressLogger} from "./ProgressLogger";
 
-const logWithTime = (...args: unknown[]) => {
-  console.log(new Date().toISOString(), ...args);
-};
+const ENV = `${Office.context.diagnostics.host} v${Office.context.diagnostics.version}`
 
 export interface AppProps {
   title: string;
@@ -97,20 +97,15 @@ export default class App extends React.Component<AppProps, AppState> {
           await context.sync();
         }
 
-        // Get the active worksheet
         const sheet = context.workbook.worksheets.getActiveWorksheet();
 
-        // Generate data: first column is keys (0, 1, 2, ...), rest are random
         const data: (number | string)[][] = [];
-
-        // Header row
         const headers: string[] = ["Key"];
         for (let i = 1; i < NUM_COLUMNS; i++) {
           headers.push(`Col${i}`);
         }
         data.push(headers);
 
-        // Data rows
         for (let i = 0; i < rows; i++) {
           const row: number[] = [i]; // Key column
           for (let j = 1; j < NUM_COLUMNS; j++) {
@@ -119,11 +114,9 @@ export default class App extends React.Component<AppProps, AppState> {
           data.push(row);
         }
 
-        // Create range and table
         const range = sheet.getRangeByIndexes(0, 0, rows + 1, NUM_COLUMNS);
         range.values = data;
 
-        // Create table
         const table = sheet.tables.add(range, true);
         table.name = TABLE_NAME;
 
@@ -178,29 +171,30 @@ export default class App extends React.Component<AppProps, AppState> {
 
         const totalRows = dataRange.rowCount;
         const numRowsToUpdate = Math.ceil((totalRows * percentage) / 100);
+        const targetKeys = Array.from({ length: totalRows }, (_, i) => i);
 
-        // Generate all keys
-        const allKeys = Array.from({ length: totalRows }, (_, i) => i);
-
+        const progLogger = new ProgressLogger(iterations, 60000); // Log every minute
         for (let iter = 0; iter < iterations; iter++) {
-          // 1. Generate new random data for non-key columns
-          const randomData = this.generateRandomData(numRowsToUpdate, NUM_COLUMNS - 1);
+          progLogger.update(iter);
+          const cellValues = this.generateRandomData(numRowsToUpdate, NUM_COLUMNS - 1);
 
-          // 2. Choose random set of rows
-          const shuffledKeys = this.shuffleArray(allKeys);
+          const shuffledKeys = this.shuffleArray(targetKeys);
           const selectedKeys = shuffledKeys.slice(0, numRowsToUpdate);
 
-          // 3. Update the non-key values in the table
           for (let i = 0; i < selectedKeys.length; i++) {
             const rowIndex = selectedKeys[i];
             const rowRange = dataRange.getRow(rowIndex);
 
-            // Update only non-key columns (columns 1 to 16)
             const updateRange = rowRange.getOffsetRange(0, 1).getAbsoluteResizedRange(1, NUM_COLUMNS - 1);
-            updateRange.values = [randomData[i]];
+            updateRange.values = [cellValues[i]];
           }
+
+          // Apply the changes for this iteration
+          // eslint-disable-next-line office-addins/no-context-sync-in-loop
+          await context.sync();
         }
-        await context.sync();
+        progLogger.finish();
+
       });
 
       const endTime = performance.now();
@@ -247,6 +241,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
         {/* Form 1: Table Preparation */}
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+          <p>Running within <strong>{ENV}</strong></p>
           <h3>1. Prepare Test Table</h3>
           <div>
             <label htmlFor="rows-input" style={{ display: "block", marginBottom: "4px" }}>
