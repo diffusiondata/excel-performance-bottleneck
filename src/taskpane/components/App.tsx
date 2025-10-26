@@ -163,25 +163,34 @@ export default class App extends React.Component<AppProps, AppState> {
 
     logWithTime(`Test begun`, {iterations, percentage});
     try {
-      await Excel.run(async (context) => {
+      // Get table dimensions once before iterations
+      const { totalRows, numRowsToUpdate } = await Excel.run(async (context) => {
         const table = context.workbook.tables.getItem(TABLE_NAME);
         const dataRange = table.getDataBodyRange();
-        dataRange.load("values, rowCount, columnCount");
+        dataRange.load("rowCount");
         await context.sync();
 
         const totalRows = dataRange.rowCount;
         const numRowsToUpdate = Math.ceil((totalRows * percentage) / 100);
         logWithTime(`Updating ${numRowsToUpdate.toLocaleString()} random rows of table holding ${totalRows} rows, ${iterations.toLocaleString()} iterations`);
-      
-        const targetKeys = Array.from({ length: totalRows }, (_, i) => i);
 
-        const progLogger = new ProgressLogger(iterations, 60000); // Log every minute
-        for (let iter = 0; iter < iterations; iter++) {
-          progLogger.update(iter);
-          const cellValues = this.generateRandomData(numRowsToUpdate, NUM_COLUMNS - 1);
+        return { totalRows, numRowsToUpdate };
+      });
 
-          const shuffledKeys = this.shuffleArray(targetKeys);
-          const selectedKeys = shuffledKeys.slice(0, numRowsToUpdate);
+      const targetKeys = Array.from({ length: totalRows }, (_, i) => i);
+
+      const progLogger = new ProgressLogger(iterations, 60000); // Log every minute
+      for (let iter = 0; iter < iterations; iter++) {
+        progLogger.update(iter);
+        const cellValues = this.generateRandomData(numRowsToUpdate, NUM_COLUMNS - 1);
+
+        const shuffledKeys = this.shuffleArray(targetKeys);
+        const selectedKeys = shuffledKeys.slice(0, numRowsToUpdate);
+
+        // Create a new context for each iteration
+        await Excel.run(async (context) => {
+          const table = context.workbook.tables.getItem(TABLE_NAME);
+          const dataRange = table.getDataBodyRange();
 
           for (let i = 0; i < selectedKeys.length; i++) {
             const rowIndex = selectedKeys[i];
@@ -191,13 +200,12 @@ export default class App extends React.Component<AppProps, AppState> {
             updateRange.values = [cellValues[i]];
           }
 
-          // Apply the changes for this iteration
+          // This sync is inside the outer loop but with a fresh context each time
           // eslint-disable-next-line office-addins/no-context-sync-in-loop
           await context.sync();
-        }
-        progLogger.finish();
-        return context.sync();
-      });
+        });
+      }
+      progLogger.finish();
 
       const endTime = performance.now();
       const duration = endTime - startTime;
