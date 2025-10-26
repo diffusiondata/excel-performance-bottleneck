@@ -1,4 +1,5 @@
 import {logWithTime} from "./Common";
+import prettyMilliseconds from "pretty-ms";
 
 /**
  * For periodic progress logging, for long running jobs.
@@ -15,12 +16,12 @@ export class ProgressLogger {
   constructor(totalIterations: number, intervalMs: number = 60000) {
     this.total = totalIterations;
     this.intervalMs = intervalMs;
-    this.startTime = Date.now();
+    this.startTime = performance.now();
     this.lastLogTime = this.startTime;
     this.lastLogIteration = 0;
     this.currentIter = 0;
     this.timer = null;
-    
+
     this.scheduleLog();
   }
   
@@ -29,17 +30,17 @@ export class ProgressLogger {
   }
   
   private logProgress = (): void => {
-    const now = Date.now();
+    const now = performance.now();
     const iterationsSinceLastLog = this.currentIter - this.lastLogIteration;
-    const timeSinceLastLog = (now - this.lastLogTime) / 1000;
-    const rate = (iterationsSinceLastLog / timeSinceLastLog) * (this.intervalMs / 1000);
+    const timeSinceLastLogMs = now - this.lastLogTime;
+    const rate = (iterationsSinceLastLog / timeSinceLastLogMs) * this.intervalMs;
     const timeUnit = this.intervalMs >= 60000 ? 'minute' : 'second';
-    
-    logWithTime(`Iteration: ${this.currentIter + 1}/${this.total}, rate: ${rate.toFixed(2)} iterations/${timeUnit}`);
-    
+
+    logWithTime(`Iteration: ${this.currentIter + 1}/${this.total}, rate: ${rate.toLocaleString()} iterations/${timeUnit}`);
+
     this.lastLogTime = now;
     this.lastLogIteration = this.currentIter;
-    
+
     if (this.currentIter < this.total) {
       this.scheduleLog();
     }
@@ -54,9 +55,9 @@ export class ProgressLogger {
       clearTimeout(this.timer);
       this.timer = null;
     }
-    
-    const totalTime = (Date.now() - this.startTime) / 1000;
-    const overallRate = (this.total / totalTime) * 60;
-    logWithTime(`Completed ${this.total} iterations in ${totalTime.toFixed(2)}s, overall rate: ${overallRate.toFixed(2)} iterations/minute`);
+
+    const totalTimeMs = performance.now() - this.startTime;
+    const overallRate = (this.total / totalTimeMs) * 60000;
+    logWithTime(`Completed ${this.total.toLocaleString()} iterations in ${totalTimeMs.toLocaleString()}ms (${prettyMilliseconds(totalTimeMs)}), overall rate: ${overallRate.toLocaleString()} iterations/minute`);
   }
 }

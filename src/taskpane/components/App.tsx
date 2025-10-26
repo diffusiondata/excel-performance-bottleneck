@@ -171,6 +171,8 @@ export default class App extends React.Component<AppProps, AppState> {
 
         const totalRows = dataRange.rowCount;
         const numRowsToUpdate = Math.ceil((totalRows * percentage) / 100);
+        logWithTime(`Updating ${numRowsToUpdate.toLocaleString()} random rows of table holding ${totalRows} rows, ${iterations.toLocaleString()} iterations`);
+      
         const targetKeys = Array.from({ length: totalRows }, (_, i) => i);
 
         const progLogger = new ProgressLogger(iterations, 60000); // Log every minute
@@ -194,7 +196,7 @@ export default class App extends React.Component<AppProps, AppState> {
           await context.sync();
         }
         progLogger.finish();
-
+        return context.sync();
       });
 
       const endTime = performance.now();
