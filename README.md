@@ -1,10 +1,17 @@
 # Excel Performance Bottleneck Test Tool
 
-An Excel Add-in built to reproduce and measure a performance regression in Excel's Office JavaScript API when updating rows in an Excel Table.
+An Excel Add-in built to reproduce and measure a performance bottleneck in Excel's Office JavaScript API when updating rows in an Excel Table.
 
 ## Overview
 
-This tool demonstrates a significant performance degradation observed in Excel version **16.0.19127.20314** (Windows) compared to the prior version **16.0.19029.20244** when using the Office-JS API to update table rows.
+This tool demonstrates a performance degradation in Excel for Windows version **16.0.19127.20314** (October) compared to version **16.0.19029.20244** (September). This degradation occurs when using the Office-JS API to update table rows. Frequent updates to large numeric tables are a common use case in financial organisations. The October version is approximately 12.5 times slower than the September version. 
+
+By default this tool does the following 
+1. Creates a table of 15,000 rows and 17 columns
+2. Updates a random 10% of the rows with random data 
+3. Repeats step 2 1,000 times. 
+
+Timestamped log entries are written to the JavaScript console. Our test results are stored in [RESULTS.md](./RESULTS.md). A marked performance degradation is observed using Excel v16.0.19127.20314
 
 ## Features
 
@@ -22,8 +29,8 @@ This tool demonstrates a significant performance degradation observed in Excel v
 ## Prerequisites
 
 - Node.js (LTS version recommended)
-- Microsoft Excel (Desktop or Web)
-- npm or yarn package manager
+- Microsoft Excel for Desktop
+- npm
 
 ## Installation
 
@@ -40,14 +47,14 @@ npm install
 
 ## Performance Test Execution
 
-1. Install the desired version. Use ODT to install either verion 
+1. Install the desired version using [ODT](https://www.microsoft.com/en-us/download/details.aspx?id=49117)
 
-1. Start the development server:
+2. Start the development server:
 ```bash
 npm run dev
 ```
-2. Start Excel
-Open a new shell (as the development server is still running)
+3. Start Excel
+Open a new terminal window (as the development server is still running)
 ```bash
 npm run start
 ```
@@ -69,11 +76,11 @@ npm run start
 
 ## Performance Issue Details
 
-This tool was created to demonstrate a performance regression where updating table rows in Excel version 16.0.19127.20314 takes significantly longer than in version 16.0.19029.20244 when using the Office JavaScript API to update rows of an `Excel.Table`
+This tool was created to demonstrate a performance bottleneck where updating table rows in Excel version 16.0.19127.20314 takes significantly longer than in version 16.0.19029.20244 when using the Office JavaScript API to update rows of an `Excel.Table`
 
 ## Results
 
-
+See [RESULTS.md](./RESULTS.md) for detailed test results comparing Excel versions.
 
 ## Author
 
