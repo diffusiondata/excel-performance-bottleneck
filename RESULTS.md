@@ -18,7 +18,7 @@ The October version is ~12.5x slower than the September version for this workloa
 
 ## Test Host
 
-PPocessor: 12th Gen Intel(R) Core(TM) i7-1260P (2.10 GHz)
+Processor: 12th Gen Intel(R) Core(TM) i7-1260P (2.10 GHz)
 Installed RAM: 16.0 GB (15.7 GB usable)
 Edition: Windows 11 Business
 OS Build: 26100.6899
