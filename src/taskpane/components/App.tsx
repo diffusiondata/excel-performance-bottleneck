@@ -161,7 +161,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
     const startTime = performance.now();
 
-    logWithTime(`Test begun`, {iterations, percentage});
+    logWithTime(`Test begun,`, {iterations, percentage, ENV});
     try {
       // Get table dimensions once before iterations
       const { totalRows, numRowsToUpdate } = await Excel.run(async (context) => {
