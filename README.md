@@ -71,7 +71,8 @@ npm run start
    - **Number of iterations**: How many times to repeat the update
 2. Click "Execute Performance Test"
 3. The tool will update the specified percentage of rows for each iteration and measure execution time
-4. View the results displayed in the task pane
+4. View the results displayed in the task pane and the JavaScript console
+5. Save the JavaScript console for later analysis
 
 
 ## Performance Issue Details
